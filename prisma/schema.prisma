@@ -11,26 +11,27 @@ datasource db {
 }
 
 model User {
-  id             Int     @id @default(autoincrement())
+  userId         Int     @id @default(autoincrement())
+  accountType    String
   username       String  @unique
   hashedPassword String
   photos         Photo[]
 }
 
 model Photo {
-  id          BigInt     @id @default(autoincrement())
+  photoId     Int        @id @default(autoincrement())
   path        String
   lat         Int?
   lon         Int?
   description String?
-  owner       User       @relation(fields: [ownerId], references: [id])
+  owner       User       @relation(fields: [ownerId], references: [userId])
   ownerId     Int
   PhotoTag    PhotoTag[]
 }
 
 model PhotoTag {
-  id       BigInt @id @default(autoincrement())
-  tag      String
-  forPhoto Photo  @relation(fields: [photoId], references: [id])
-  photoId  BigInt
+  photoTagId Int    @id @default(autoincrement())
+  tag        String
+  forPhoto   Photo  @relation(fields: [photoId], references: [photoId])
+  photoId    Int
 }
