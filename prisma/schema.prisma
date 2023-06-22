@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
 }
 
 datasource db {
@@ -11,7 +12,7 @@ datasource db {
 }
 
 model User {
-  userId         Int     @id @default(autoincrement())
+  userId         String  @id @default(uuid())
   accountType    String
   username       String  @unique
   hashedPassword String
@@ -19,19 +20,23 @@ model User {
 }
 
 model Photo {
-  photoId     Int        @id @default(autoincrement())
-  path        String
-  lat         Int?
-  lon         Int?
-  description String?
-  owner       User       @relation(fields: [ownerId], references: [userId])
-  ownerId     Int
-  PhotoTag    PhotoTag[]
+  photoId      String     @id @default(uuid())
+  path         String
+  width        Int
+  height       Int
+  dateTaken    DateTime?
+  lastModified DateTime @default(now())
+  lat          Int?
+  lon          Int?
+  description  String?
+  owner        User       @relation(fields: [ownerId], references: [userId])
+  ownerId      String
+  PhotoTag     PhotoTag[]
 }
 
 model PhotoTag {
-  photoTagId Int    @id @default(autoincrement())
+  photoTagId String @id @default(uuid())
   tag        String
   forPhoto   Photo  @relation(fields: [photoId], references: [photoId])
-  photoId    Int
+  photoId    String
 }

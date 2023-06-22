@@ -36,9 +36,14 @@ export class AccountService {
             'success': true,
             'username': result.username,
             'accountType': result.accountType,
-            'id': result.id
+            'id': result.userId
         }
     }
 
+    async getAccountNameById(id: string) {
+        return this.db.user.findUnique({
+            where: {userId: id}
+        })
+    }
 
 }
