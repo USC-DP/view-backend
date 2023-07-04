@@ -54,4 +54,16 @@ export class PhotosController {
     async getAllPhotoGeoData(@Param('id') id: string) {
         return this.photoService.getAllPhotoGeoData(id);
     }
+
+    @Get("/sections")
+    async getSections() {
+        return this.photoService.getSections();
+    }
+
+    @Get("/segments/:id")
+    async getSegments(@Param('id') id: string) {
+        return this.photoService.getSegments(id);
+    }
+
+
 }
