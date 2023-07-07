@@ -19,6 +19,7 @@ export class PhotosController {
         @Body('description') description?: string,
         @Body('lat') lat?: number,
         @Body('lon') lon?: number,
+        @Body('dateTaken') dateTaken?: string,
     ) {
         return this.photoService.addPhoto({
             path,
@@ -30,6 +31,7 @@ export class PhotosController {
             lat: Number(lat),
             lon: Number(lon),
             description,
+            dateTaken: new Date(Date.parse(dateTaken))
         });
     }
 

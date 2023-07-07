@@ -3,12 +3,11 @@ import { PrismaService } from "src/services/prisma.service";
 import { User, Prisma } from '@prisma/client';
 import { randomUUID } from "crypto";
 
-
 @Injectable()
 export class PhotosService {
 
     constructor(private readonly db: PrismaService) { }
-    
+
     async addPhoto(data: Prisma.PhotoCreateInput) {
         return this.db.photo.create({
             data,
@@ -43,14 +42,14 @@ export class PhotosService {
                 width: true,
                 height: true,
             },
-            where: {ownerId: id}
+            where: { ownerId: id }
         })
     }
 
     async getPhotoPathById(id: string) {
         return this.db.photo.findUnique({
-            select: {path: true},
-            where: {photoId: id}
+            select: { path: true },
+            where: { photoId: id }
         })
     }
 
@@ -75,55 +74,48 @@ export class PhotosService {
                 lat: true,
                 lon: true
             },
-            where: {ownerId: id}
+            where: { ownerId: id }
         })
     }
 
-    async getSections() {
+    async getSections(): Promise<ViewSection[]> {
 
-        let sections: ViewSection[] = []
-        for (let i = 0; i < 120; i++) {
-            let uuid = randomUUID();
-            let section: ViewSection = {
-                sectionId: uuid,
-                totalMedia: parseInt(uuid.substring(uuid.length - 1), 16) * 2
-            }
-            sections.push(section);
-        }
-        return sections;
+        return this.db.$queryRaw
+            `
+        SELECT strftime('%Y-%m', datetime(dateTaken/1000, 'unixepoch')) AS sectionId, COUNT(*) AS totalMedia
+        FROM "Photo"
+        GROUP BY sectionId
+        ORDER BY sectionId DESC
+      `;
     }
 
     async getSegments(id: string) {
 
-        let totalPhotos = parseInt(id.substring(id.length - 1), 16) * 2
+        interface ViewMediaExpanded extends ViewMedia { segmentId: string }
 
-        let segments: ViewSegment[] = [];
-        let segment: ViewSegment = {
-            segmentId: randomUUID(),
-            media: []
-        }
-        for (let i = 0; i < totalPhotos; i++) {
-            let image: ViewMedia = {
-                mediaId: randomUUID(),
-                metadata: {
-                    mediaId: '032c24b8-f993-4f3a-9f44-851bf64ab8b8',
-                    width: 1920,
-                    height: 1080,
-                }
-            }
-            segment.media.push(image);
-            if (Math.random() > 0.5) {
-                segments.push(segment);
-                segment = {
-                    segmentId: randomUUID(),
-                    media: []
-                }
-            }
-        }
+        let expandedSegments: ViewMediaExpanded[] = await this.db.$queryRaw
+            `
+            SELECT strftime('%Y-%m-%d', datetime(dateTaken/1000, 'unixepoch')) as segmentId,
+            photoId AS mediaId, width, height
+            FROM "Photo"
+            WHERE strftime('%Y-%m', datetime(dateTaken/1000, 'unixepoch')) = ${id}
+            ORDER BY segmentId DESC
+        `
 
-        if (segment.media.length > 0) {
-            segments.push(segment);
-        }
-        return segments;
+        return expandedSegments.reduce((acc, obj) => {
+            const { segmentId, mediaId, width, height } = obj;
+          
+            let section = acc.find((item) => item.segmentId === segmentId);
+            if (section) {
+              section.media.push({ width, height, mediaId });
+            } else {
+              section = {
+                segmentId: segmentId,
+                media: [{ width, height, mediaId }]
+              };
+              acc.push(section);
+            }
+            return acc;
+          }, []);
     }
 }
