@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, StreamableFile, Res } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, StreamableFile, Res, Query } from "@nestjs/common";
 import { PhotosService } from "./photos.service";
 import { PrismaService } from "src/services/prisma.service";
 import { Prisma, User as UserModel } from '@prisma/client';
@@ -58,14 +58,19 @@ export class PhotosController {
         return this.photoService.getAllPhotoGeoData(id);
     }
 
-    @Get("/sections")
-    async getSections() {
-        return this.photoService.getSections();
+    @Get("/sections/:searchTerm")
+    async getSections(@Param("searchTerm") searchTerm: string) {
+        return this.photoService.getSections(searchTerm);
+    }
+
+    @Get("/sections/")
+    async getSectionsEmpty() {
+        return this.photoService.getSections(null);
     }
 
     @Get("/segments/:id")
-    async getSegments(@Param('id') id: string) {
-        return this.photoService.getSegments(id);
+    async getSegments(@Param('id') id: string, @Query('search') searchTerm?: string) {
+        return this.photoService.getSegments(id, searchTerm);
     }
 
     @Post("/photo/set-categories/")

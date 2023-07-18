@@ -79,27 +79,34 @@ export class PhotosService {
         })
     }
 
-    async getSections(): Promise<ViewSection[]> {
+    async getSections(searchTerm): Promise<ViewSection[]> {
 
         return this.db.$queryRaw
             `
-        SELECT strftime('%Y-%m', datetime(dateTaken/1000, 'unixepoch')) AS sectionId, COUNT(*) AS totalMedia
-        FROM "Photo"
-        GROUP BY sectionId
-        ORDER BY sectionId DESC
-      `;
+                SELECT strftime('%Y-%m', datetime(dateTaken/1000, 'unixepoch')) AS sectionId, COUNT(*) AS totalMedia
+                FROM "Photo" AS p
+                LEFT JOIN "PhotoTag" AS pt ON p.photoId = pt.photoId
+                WHERE pt.tag = ${searchTerm} or ${searchTerm} IS NULL
+                GROUP BY sectionId
+                ORDER BY sectionId DESC
+                `;
+
     }
 
-    async getSegments(id: string) {
+    async getSegments(id: string, searchTerm?: string) {
 
+        if (!searchTerm) {
+            searchTerm = null;
+        }
         interface ViewMediaExpanded extends ViewMedia { segmentId: string }
 
         let expandedSegments: ViewMediaExpanded[] = await this.db.$queryRaw
             `
             SELECT strftime('%Y-%m-%d', datetime(dateTaken/1000, 'unixepoch')) as segmentId,
-            photoId AS mediaId, width, height
-            FROM "Photo"
-            WHERE strftime('%Y-%m', datetime(dateTaken/1000, 'unixepoch')) = ${id}
+            p.photoId AS mediaId, width, height
+            FROM "Photo" AS p
+            LEFT JOIN "PhotoTag" AS pt ON p.photoId = pt.photoId
+            WHERE strftime('%Y-%m', datetime(dateTaken/1000, 'unixepoch')) = ${id} AND (pt.tag = ${searchTerm} or ${searchTerm} IS NULL)
             ORDER BY segmentId DESC
         `
 
@@ -125,7 +132,7 @@ export class PhotosService {
         if (count) {
             let tagSet = new Set(mediaCategoriesDto.tag);
             let existingPhotoTags = await this.db.photoTag.findMany({
-                where: {photoId: mediaCategoriesDto.photoId }
+                where: { photoId: mediaCategoriesDto.photoId }
             })
 
             for (const existingPhotoTagRow of existingPhotoTags) {
@@ -134,7 +141,7 @@ export class PhotosService {
                     continue;
                 } else {
                     let removedRow = await this.db.photoTag.delete({
-                        where: {photoTagId: existingPhotoTagRow.photoTagId}
+                        where: { photoTagId: existingPhotoTagRow.photoTagId }
                     })
                 }
             }
@@ -153,8 +160,8 @@ export class PhotosService {
 
     async getCategories(id: string) {
         return this.db.photoTag.findMany({
-            select: {tag: true},
-            where: {photoId: id}
+            select: { tag: true },
+            where: { photoId: id }
         })
     }
 }
