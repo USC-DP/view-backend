@@ -1,15 +1,28 @@
+import { IsArray, IsNotEmpty, IsString, ValidateNested } from "class-validator";
 
-interface ViewMedia {
+export interface ViewMedia {
     mediaId: string,
     width: number,
     height: number
 }
 
-interface ViewSegment {
+export interface ViewSegment {
     segmentId: string,
     media: ViewMedia[]
 }
-interface ViewSection {
+export interface ViewSection {
     sectionId: string
     totalMedia: number
+}
+
+
+export class MediaCategoryDto {
+    @IsNotEmpty()
+    @IsString()
+    photoId: string;
+
+    @IsNotEmpty()
+    @IsArray()
+    @IsString({each: true})
+    tag: string[];
 }

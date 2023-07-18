@@ -3,6 +3,7 @@ import { PhotosService } from "./photos.service";
 import { PrismaService } from "src/services/prisma.service";
 import { Prisma, User as UserModel } from '@prisma/client';
 import { createReadStream } from "fs";
+import { MediaCategoryDto } from "src/models/photo-list-models";
 
 
 @Controller('/photos')
@@ -66,6 +67,17 @@ export class PhotosController {
     async getSegments(@Param('id') id: string) {
         return this.photoService.getSegments(id);
     }
+
+    @Post("/photo/set-categories/")
+    async postCategories(@Body() mediaCategoriesDto: MediaCategoryDto) {
+        return this.photoService.postCategories(mediaCategoriesDto);
+    }
+
+    @Get("/photo/get-categories/:id")
+    async getCategories(@Param("id") id) {
+        return this.photoService.getCategories(id);
+    }
+    
 
 
 }

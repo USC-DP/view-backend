@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/services/prisma.service";
 import { User, Prisma } from '@prisma/client';
 import { randomUUID } from "crypto";
+import { MediaCategoryDto, ViewMedia, ViewSection } from "src/models/photo-list-models";
 
 @Injectable()
 export class PhotosService {
@@ -104,18 +105,56 @@ export class PhotosService {
 
         return expandedSegments.reduce((acc, obj) => {
             const { segmentId, mediaId, width, height } = obj;
-          
+
             let section = acc.find((item) => item.segmentId === segmentId);
             if (section) {
-              section.media.push({ width, height, mediaId });
+                section.media.push({ width, height, mediaId });
             } else {
-              section = {
-                segmentId: segmentId,
-                media: [{ width, height, mediaId }]
-              };
-              acc.push(section);
+                section = {
+                    segmentId: segmentId,
+                    media: [{ width, height, mediaId }]
+                };
+                acc.push(section);
             }
             return acc;
-          }, []);
+        }, []);
+    }
+
+    async postCategories(mediaCategoriesDto: MediaCategoryDto) {
+        let count = await this.db.photo.count({ where: { photoId: mediaCategoriesDto.photoId } });
+        if (count) {
+            let tagSet = new Set(mediaCategoriesDto.tag);
+            let existingPhotoTags = await this.db.photoTag.findMany({
+                where: {photoId: mediaCategoriesDto.photoId }
+            })
+
+            for (const existingPhotoTagRow of existingPhotoTags) {
+                if (tagSet.has(existingPhotoTagRow.tag)) {
+                    tagSet.delete(existingPhotoTagRow.tag);
+                    continue;
+                } else {
+                    let removedRow = await this.db.photoTag.delete({
+                        where: {photoTagId: existingPhotoTagRow.photoTagId}
+                    })
+                }
+            }
+
+            for (const newTag of tagSet) {
+                let addedNewTag = await this.db.photoTag.create({
+                    data: {
+                        photoId: mediaCategoriesDto.photoId,
+                        tag: newTag
+                    }
+                })
+            }
+        }
+        return;
+    }
+
+    async getCategories(id: string) {
+        return this.db.photoTag.findMany({
+            select: {tag: true},
+            where: {photoId: id}
+        })
     }
 }
