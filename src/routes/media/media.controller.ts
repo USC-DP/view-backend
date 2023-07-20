@@ -27,9 +27,8 @@ export class MediaController {
 
     @Get("/view/:id")
     async getPhotoViewFromId(@Param('id') id: string, @Res() res) {
-        //let d = await this.photoService.getPhotoPathById(id);
-        //const file = createReadStream(d.path);
-        //file.pipe(res);
+        let d = await this.photoService.getPhotoPathById(id);
+        d.pipe(res);
     }
 
     @Get("/all-geo-data/:id")

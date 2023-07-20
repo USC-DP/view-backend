@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 import { Account } from './account.entity';
 
 @Entity()
-export class Media {
+export class MediaEntity {
   @PrimaryGeneratedColumn("uuid")
   mediaId: string;
 
@@ -40,4 +40,6 @@ export class Media {
   @JoinColumn({name: 'ownerId'})
   owner: Account;
 
+  @Column()
+  ownerId: string;
 }

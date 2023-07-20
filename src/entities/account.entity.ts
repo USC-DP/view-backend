@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Media } from './media.entity';
+import { MediaEntity } from './media.entity';
 
 @Entity()
 export class Account {
@@ -12,5 +12,5 @@ export class Account {
     @Column()
     password: string
 
-    @OneToMany(() => Media, media => media.owner) media: Media[]
+    @OneToMany(() => MediaEntity, media => media.owner) media: MediaEntity[]
 }

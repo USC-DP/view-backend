@@ -1,17 +1,18 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
+import { createReadStream } from "fs";
 import { MediaDto } from "src/dto/media/media.dto";
-import { Media } from "src/entities/media.entity";
 import { MediaCategoryDto, ViewMedia, ViewSection } from "src/models/photo-list-models";
+import { MediaRepository } from "src/repositories/media.repository";
 import { Repository } from "typeorm";
 
 @Injectable()
 export class MediaService {
 
     constructor(
-        @InjectRepository(Media)
-        private mediaRepository: Repository<Media>
+        @InjectRepository(MediaRepository)
+        private mediaRepository: MediaRepository
     ) { }
 
     async addPhoto(createMediaDto: MediaDto) {
@@ -27,7 +28,8 @@ export class MediaService {
     }
 
     async getPhotoPathsForUser(id: string) {
-
+        return this.mediaRepository.findAllPhotosByOwnerId(id);
+        //return await this.mediaRepository.find({select: {mediaId: true, width: true, height: true}, where: {owner: id}})
         /*const xprisma = this.db.$extends({
             result: {
                 photo: {
@@ -53,10 +55,8 @@ export class MediaService {
     }
 
     async getPhotoPathById(id: string) {
-        /*return this.db.photo.findUnique({
-            select: { path: true },
-            where: { photoId: id }
-        })*/
+        const media = await this.mediaRepository.findOne({ where: { mediaId: id } });
+        return createReadStream(media.path);
     }
 
     async getAllPhotoGeoData(id: string) {
