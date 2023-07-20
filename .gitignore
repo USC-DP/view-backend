@@ -38,3 +38,5 @@ prisma/dev.db
 prisma/migrations/*
 
 photos/*
+
+*.db

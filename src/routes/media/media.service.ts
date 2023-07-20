@@ -1,29 +1,34 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "src/services/prisma.service";
-import { User, Prisma } from '@prisma/client';
+import { InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
+import { MediaDto } from "src/dto/media/media.dto";
+import { Media } from "src/entities/media.entity";
 import { MediaCategoryDto, ViewMedia, ViewSection } from "src/models/photo-list-models";
+import { Repository } from "typeorm";
 
 @Injectable()
-export class PhotosService {
+export class MediaService {
 
-    constructor(private readonly db: PrismaService) { }
+    constructor(
+        @InjectRepository(Media)
+        private mediaRepository: Repository<Media>
+    ) { }
 
-    async addPhoto(data: Prisma.PhotoCreateInput) {
-        return this.db.photo.create({
-            data,
-        });
+    async addPhoto(createMediaDto: MediaDto) {
+
+        let mediaData = { ...createMediaDto, mediaType: 'image' };
+
+        let media = this.mediaRepository.create(mediaData);
+        return await this.mediaRepository.save(media);
     }
 
     async getPhotoDataById(id: string) {
-        return this.db.photo.findUnique({
-            where: { photoId: id }
-        });
+        return this.mediaRepository.findOne({ where: { mediaId: id } });
     }
 
     async getPhotoPathsForUser(id: string) {
 
-        const xprisma = this.db.$extends({
+        /*const xprisma = this.db.$extends({
             result: {
                 photo: {
                     src: {
@@ -34,9 +39,9 @@ export class PhotosService {
                     }
                 }
             }
-        })
+        })*/
 
-        return xprisma.photo.findMany({
+        /*return xprisma.photo.findMany({
             select: {
                 src: true,
                 photoId: true,
@@ -44,18 +49,18 @@ export class PhotosService {
                 height: true,
             },
             where: { ownerId: id }
-        })
+        })*/
     }
 
     async getPhotoPathById(id: string) {
-        return this.db.photo.findUnique({
+        /*return this.db.photo.findUnique({
             select: { path: true },
             where: { photoId: id }
-        })
+        })*/
     }
 
     async getAllPhotoGeoData(id: string) {
-        const xprisma = this.db.$extends({
+        /*const xprisma = this.db.$extends({
             result: {
                 photo: {
                     src: {
@@ -76,12 +81,12 @@ export class PhotosService {
                 lon: true
             },
             where: { ownerId: id }
-        })
+        })*/
     }
 
-    async getSections(searchTerm): Promise<ViewSection[]> {
+    async getSections(searchTerm) {
 
-        return this.db.$queryRaw
+        /*return this.db.$queryRaw
             `
                 SELECT strftime('%Y-%m', datetime(dateTaken/1000, 'unixepoch')) AS sectionId, COUNT(*) AS totalMedia
                 FROM "Photo" AS p
@@ -89,12 +94,12 @@ export class PhotosService {
                 WHERE pt.tag = ${searchTerm} or ${searchTerm} IS NULL
                 GROUP BY sectionId
                 ORDER BY sectionId DESC
-                `;
+                `;*/
 
     }
 
     async getSegments(id: string, searchTerm?: string) {
-
+        /*
         if (!searchTerm) {
             searchTerm = null;
         }
@@ -124,11 +129,11 @@ export class PhotosService {
                 acc.push(section);
             }
             return acc;
-        }, []);
+        }, []);*/
     }
 
     async postCategories(mediaCategoriesDto: MediaCategoryDto) {
-        let count = await this.db.photo.count({ where: { photoId: mediaCategoriesDto.photoId } });
+        /*let count = await this.db.photo.count({ where: { photoId: mediaCategoriesDto.photoId } });
         if (count) {
             let tagSet = new Set(mediaCategoriesDto.tag);
             let existingPhotoTags = await this.db.photoTag.findMany({
@@ -155,13 +160,13 @@ export class PhotosService {
                 })
             }
         }
-        return;
+        return;*/
     }
 
     async getCategories(id: string) {
-        return this.db.photoTag.findMany({
+        /*return this.db.photoTag.findMany({
             select: { tag: true },
             where: { photoId: id }
-        })
+        })*/
     }
 }

@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
-import { PrismaService } from "src/services/prisma.service";
 import { AccountService } from "./account.service";
 import { PassThrough } from "stream";
 
@@ -17,7 +16,7 @@ export class AccountController {
         return this.accountService.createUser(username, password);
     }
 
-    @Get('/account/:id')
+    @Get('/:id')
     async getAccountNameById(@Param('id') id: string) {
         return this.accountService.getAccountNameById(id);
     }

@@ -1,39 +1,18 @@
 import { Body, Controller, Get, Param, Post, StreamableFile, Res, Query } from "@nestjs/common";
-import { PhotosService } from "./photos.service";
-import { PrismaService } from "src/services/prisma.service";
-import { Prisma, User as UserModel } from '@prisma/client';
+import { MediaService } from "./media.service";
 import { createReadStream } from "fs";
 import { MediaCategoryDto } from "src/models/photo-list-models";
+import { MediaDto } from "src/dto/media/media.dto";
 
 
 @Controller('/photos')
-export class PhotosController {
+export class MediaController {
 
-    constructor(private readonly photoService: PhotosService) { }
+    constructor(private readonly photoService: MediaService) { }
 
     @Post("/add")
-    async addPhoto(
-        @Body('path') path: string,
-        @Body('width') width: string,
-        @Body('height') height: string,
-        @Body('owner') owner: string,
-        @Body('description') description?: string,
-        @Body('lat') lat?: number,
-        @Body('lon') lon?: number,
-        @Body('dateTaken') dateTaken?: string,
-    ) {
-        return this.photoService.addPhoto({
-            path,
-            owner: {
-                connect: { username: owner }
-            },
-            width: Number(width),
-            height: Number(height),
-            lat: Number(lat),
-            lon: Number(lon),
-            description,
-            dateTaken: new Date(Date.parse(dateTaken))
-        });
+    async addPhoto(@Body() createMediaDto: MediaDto) {
+        return this.photoService.addPhoto(createMediaDto);
     }
 
     @Get("/photo/:id")
@@ -48,9 +27,9 @@ export class PhotosController {
 
     @Get("/view/:id")
     async getPhotoViewFromId(@Param('id') id: string, @Res() res) {
-        let d = await this.photoService.getPhotoPathById(id);
-        const file = createReadStream(d.path);
-        file.pipe(res);
+        //let d = await this.photoService.getPhotoPathById(id);
+        //const file = createReadStream(d.path);
+        //file.pipe(res);
     }
 
     @Get("/all-geo-data/:id")
