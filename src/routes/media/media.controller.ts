@@ -5,62 +5,60 @@ import { MediaCategoryDto } from "src/models/photo-list-models";
 import { MediaDto } from "src/dto/media/media.dto";
 
 
-@Controller('/photos')
+@Controller('/media')
 export class MediaController {
 
-    constructor(private readonly photoService: MediaService) { }
+    constructor(private readonly mediaService: MediaService) { }
 
     @Post("/add")
     async addPhoto(@Body() createMediaDto: MediaDto) {
-        return this.photoService.addPhoto(createMediaDto);
+        return this.mediaService.addPhoto(createMediaDto);
     }
 
-    @Get("/photo/:id")
+    @Get("/media/:id")
     async getPhotoById(@Param('id') id: string) {
-        return this.photoService.getPhotoDataById(id);
+        return this.mediaService.getPhotoDataById(id);
     }
 
     @Get("/from-owner/:id")
     async getPhotoPathsForUser(@Param('id') id: string) {
-        return this.photoService.getPhotoPathsForUser(id);
+        return this.mediaService.getPhotoPathsForUser(id);
     }
 
     @Get("/view/:id")
     async getPhotoViewFromId(@Param('id') id: string, @Res() res) {
-        let d = await this.photoService.getPhotoPathById(id);
+        let d = await this.mediaService.getPhotoPathById(id);
         d.pipe(res);
     }
 
     @Get("/all-geo-data/:id")
     async getAllPhotoGeoData(@Param('id') id: string) {
-        return this.photoService.getAllPhotoGeoData(id);
+        return this.mediaService.getAllPhotoGeoData(id);
     }
 
     @Get("/sections/:searchTerm")
     async getSections(@Param("searchTerm") searchTerm: string) {
-        return this.photoService.getSections(searchTerm);
+        return this.mediaService.getSections(searchTerm);
     }
 
     @Get("/sections/")
     async getSectionsEmpty() {
-        return this.photoService.getSections(null);
+        return this.mediaService.getSections(null);
     }
 
+    //todo
     @Get("/segments/:id")
     async getSegments(@Param('id') id: string, @Query('search') searchTerm?: string) {
-        return this.photoService.getSegments(id, searchTerm);
-    }
-
-    @Post("/photo/set-categories/")
-    async postCategories(@Body() mediaCategoriesDto: MediaCategoryDto) {
-        return this.photoService.postCategories(mediaCategoriesDto);
-    }
-
-    @Get("/photo/get-categories/:id")
-    async getCategories(@Param("id") id) {
-        return this.photoService.getCategories(id);
+        return this.mediaService.getSegments(id, searchTerm);
     }
     
+    @Post("/set-categories/")
+    async postCategories(@Body() mediaCategoriesDto: MediaCategoryDto) {
+        return this.mediaService.postCategories(mediaCategoriesDto);
+    }
 
-
+    @Get("/get-categories/:id")
+    async getCategories(@Param("id") id) {
+        return this.mediaService.getCategories(id);
+    }
 }

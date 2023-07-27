@@ -3,8 +3,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
 import { createReadStream } from "fs";
 import { MediaDto } from "src/dto/media/media.dto";
+import { MediaTagEntity } from "src/entities/mediatag.entity";
 import { MediaCategoryDto, ViewMedia, ViewSection } from "src/models/photo-list-models";
 import { MediaRepository } from "src/repositories/media.repository";
+import { MediaTagRepository } from "src/repositories/mediatag.repository";
 import { Repository } from "typeorm";
 
 @Injectable()
@@ -12,7 +14,9 @@ export class MediaService {
 
     constructor(
         @InjectRepository(MediaRepository)
-        private mediaRepository: MediaRepository
+        private mediaRepository: MediaRepository,
+        @InjectRepository(MediaTagRepository)
+        private mediaTagRepository: MediaTagRepository
     ) { }
 
     async addPhoto(createMediaDto: MediaDto) {
@@ -29,29 +33,6 @@ export class MediaService {
 
     async getPhotoPathsForUser(id: string) {
         return this.mediaRepository.findAllPhotosByOwnerId(id);
-        //return await this.mediaRepository.find({select: {mediaId: true, width: true, height: true}, where: {owner: id}})
-        /*const xprisma = this.db.$extends({
-            result: {
-                photo: {
-                    src: {
-                        needs: { photoId: true },
-                        compute(photo) {
-                            return `http://localhost:5000/photos/view/${photo.photoId}`
-                        }
-                    }
-                }
-            }
-        })*/
-
-        /*return xprisma.photo.findMany({
-            select: {
-                src: true,
-                photoId: true,
-                width: true,
-                height: true,
-            },
-            where: { ownerId: id }
-        })*/
     }
 
     async getPhotoPathById(id: string) {
@@ -60,60 +41,22 @@ export class MediaService {
     }
 
     async getAllPhotoGeoData(id: string) {
-        /*const xprisma = this.db.$extends({
-            result: {
-                photo: {
-                    src: {
-                        needs: { photoId: true },
-                        compute(photo) {
-                            return `http://localhost:5000/photos/view/${photo.photoId}`
-                        }
-                    }
-                }
-            }
-        })
-
-        return xprisma.photo.findMany({
-            select: {
-                src: true,
-                photoId: true,
-                lat: true,
-                lon: true
-            },
-            where: { ownerId: id }
-        })*/
+        return this.mediaRepository.getAllGeodataFromOwnerId(id);
     }
 
     async getSections(searchTerm) {
-
-        /*return this.db.$queryRaw
-            `
-                SELECT strftime('%Y-%m', datetime(dateTaken/1000, 'unixepoch')) AS sectionId, COUNT(*) AS totalMedia
-                FROM "Photo" AS p
-                LEFT JOIN "PhotoTag" AS pt ON p.photoId = pt.photoId
-                WHERE pt.tag = ${searchTerm} or ${searchTerm} IS NULL
-                GROUP BY sectionId
-                ORDER BY sectionId DESC
-                `;*/
-
+        return this.mediaRepository.getSectionsForSearchTerm(searchTerm);
     }
 
-    async getSegments(id: string, searchTerm?: string) {
-        /*
+    async getSegments(id: string, searchTerm: string | null) {
         if (!searchTerm) {
-            searchTerm = null;
+            searchTerm = null
         }
+        
         interface ViewMediaExpanded extends ViewMedia { segmentId: string }
 
-        let expandedSegments: ViewMediaExpanded[] = await this.db.$queryRaw
-            `
-            SELECT strftime('%Y-%m-%d', datetime(dateTaken/1000, 'unixepoch')) as segmentId,
-            p.photoId AS mediaId, width, height
-            FROM "Photo" AS p
-            LEFT JOIN "PhotoTag" AS pt ON p.photoId = pt.photoId
-            WHERE strftime('%Y-%m', datetime(dateTaken/1000, 'unixepoch')) = ${id} AND (pt.tag = ${searchTerm} or ${searchTerm} IS NULL)
-            ORDER BY segmentId DESC
-        `
+        let expandedSegments: ViewMediaExpanded[] =  await this.mediaRepository.getSegments(id, searchTerm);
+            
 
         return expandedSegments.reduce((acc, obj) => {
             const { segmentId, mediaId, width, height } = obj;
@@ -129,44 +72,19 @@ export class MediaService {
                 acc.push(section);
             }
             return acc;
-        }, []);*/
+        }, []);
     }
 
     async postCategories(mediaCategoriesDto: MediaCategoryDto) {
-        /*let count = await this.db.photo.count({ where: { photoId: mediaCategoriesDto.photoId } });
+        let count = this.mediaRepository.count({ where: { mediaId: mediaCategoriesDto.mediaId } });
+        
+        // onlt if media even exists
         if (count) {
-            let tagSet = new Set(mediaCategoriesDto.tag);
-            let existingPhotoTags = await this.db.photoTag.findMany({
-                where: { photoId: mediaCategoriesDto.photoId }
-            })
-
-            for (const existingPhotoTagRow of existingPhotoTags) {
-                if (tagSet.has(existingPhotoTagRow.tag)) {
-                    tagSet.delete(existingPhotoTagRow.tag);
-                    continue;
-                } else {
-                    let removedRow = await this.db.photoTag.delete({
-                        where: { photoTagId: existingPhotoTagRow.photoTagId }
-                    })
-                }
-            }
-
-            for (const newTag of tagSet) {
-                let addedNewTag = await this.db.photoTag.create({
-                    data: {
-                        photoId: mediaCategoriesDto.photoId,
-                        tag: newTag
-                    }
-                })
-            }
+            this.mediaTagRepository.updateTags(mediaCategoriesDto);
         }
-        return;*/
     }
 
     async getCategories(id: string) {
-        /*return this.db.photoTag.findMany({
-            select: { tag: true },
-            where: { photoId: id }
-        })*/
+        return this.mediaTagRepository.find({ select: { tag: true }, where: { mediaId: id } })
     }
 }

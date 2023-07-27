@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Account } from './account.entity';
+import { MediaTagEntity } from './mediatag.entity';
 
-@Entity()
+@Entity({name: 'Media'})
 export class MediaEntity {
   @PrimaryGeneratedColumn("uuid")
   mediaId: string;
@@ -39,6 +40,9 @@ export class MediaEntity {
   @ManyToOne(() => Account, owner => owner.media)
   @JoinColumn({name: 'ownerId'})
   owner: Account;
+
+  @OneToMany(() => MediaTagEntity, tag => tag.forMedia)
+  tags: MediaTagEntity[];
 
   @Column()
   ownerId: string;

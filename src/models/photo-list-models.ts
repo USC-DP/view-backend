@@ -19,10 +19,10 @@ export interface ViewSection {
 export class MediaCategoryDto {
     @IsNotEmpty()
     @IsString()
-    photoId: string;
+    mediaId: string;
 
     @IsNotEmpty()
     @IsArray()
     @IsString({each: true})
-    tag: string[];
+    tags: string[];
 }
