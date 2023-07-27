@@ -15,7 +15,7 @@ export class MediaController {
         return this.mediaService.addPhoto(createMediaDto);
     }
 
-    @Get("/media/:id")
+    @Get("/data/:id")
     async getPhotoById(@Param('id') id: string) {
         return this.mediaService.getPhotoDataById(id);
     }

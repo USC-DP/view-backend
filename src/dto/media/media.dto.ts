@@ -1,4 +1,4 @@
-import { IsDate, IsDateString, IsLatitude, IsLongitude, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsDate, IsDateString, IsInt, IsLatitude, IsLongitude, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class MediaDto {
 
@@ -7,15 +7,15 @@ export class MediaDto {
     path: string;
 
     @IsNotEmpty()
-    @IsNumber()
+    @IsInt()
     width: number;
 
     @IsNotEmpty()
-    @IsNumber()
+    @IsInt()
     height: number;
 
     @IsNotEmpty()
-    @IsUUID()
+    @IsString()
     ownerId: string;
 
     @IsOptional()
@@ -26,6 +26,7 @@ export class MediaDto {
     @IsLatitude()
     lat: number;
 
+    @IsNotEmpty()
     @IsLongitude()
     lon: number;
 

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany, BeforeUpdate, BeforeInsert } from 'typeorm';
 import { Account } from './account.entity';
 import { MediaTagEntity } from './mediatag.entity';
 
@@ -34,7 +34,7 @@ export class MediaEntity {
   @UpdateDateColumn()
   fileLastModified: string;
 
-  @Column()
+  @Column({default: ''})
   description: string;
 
   @ManyToOne(() => Account, owner => owner.media)
