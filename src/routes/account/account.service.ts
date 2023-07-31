@@ -34,4 +34,8 @@ export class AccountService {
         return await this.acountRepository.findOne({ select: {userId: true, username: true}, where: {userId: id}})
     }
 
+    async findAccountByUsername(username: string) {
+        return await this.acountRepository.findOne({where: {username: username}})
+    }
+
 }

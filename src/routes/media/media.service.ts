@@ -7,6 +7,7 @@ import { MediaTagEntity } from "src/entities/mediatag.entity";
 import { MediaCategoryDto, ViewMedia, ViewSection } from "src/models/photo-list-models";
 import { MediaRepository } from "src/repositories/media.repository";
 import { MediaTagRepository } from "src/repositories/mediatag.repository";
+import { TypesenseRepository } from "src/repositories/typsense.repositoru";
 import { Repository } from "typeorm";
 
 @Injectable()
@@ -16,12 +17,14 @@ export class MediaService {
         @InjectRepository(MediaRepository)
         private mediaRepository: MediaRepository,
         @InjectRepository(MediaTagRepository)
-        private mediaTagRepository: MediaTagRepository
+        private mediaTagRepository: MediaTagRepository,
+        private typeSenseRepository: TypesenseRepository
     ) { }
 
     async addPhoto(createMediaDto: MediaDto) {
 
-        let mediaData = { ...createMediaDto, mediaType: 'image' };
+        let mediaData = { ...createMediaDto, mediaType: 'image'};
+        /*return this.typeSenseRepository.insertDocument(mediaData);*/
 
         let media = this.mediaRepository.create(mediaData);
         return await this.mediaRepository.save(media);
