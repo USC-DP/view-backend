@@ -7,12 +7,14 @@ import { MediaRepository } from "src/repositories/media.repository";
 import { MediaTagEntity } from "src/entities/mediatag.entity";
 import { MediaTagRepository } from "src/repositories/mediatag.repository";
 import { TypesenseRepository } from "src/repositories/typsense.repositoru";
+import { HttpModule } from "@nestjs/axios";
+import { EmbeddingsService } from "src/services/embeddings.service";
 
 
 @Module({
-    imports: [TypeOrmModule.forFeature([MediaEntity, MediaRepository, MediaTagEntity, MediaTagRepository])],
+    imports: [TypeOrmModule.forFeature([MediaEntity, MediaRepository, MediaTagEntity, MediaTagRepository]), HttpModule],
     controllers: [MediaController],
-    providers: [MediaService, MediaRepository, MediaTagRepository, TypesenseRepository]
+    providers: [MediaService, MediaRepository, MediaTagRepository, TypesenseRepository, EmbeddingsService]
 })
 
 export class MediaModule {}

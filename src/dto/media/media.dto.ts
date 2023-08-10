@@ -1,4 +1,4 @@
-import { IsDate, IsDateString, IsInt, IsLatitude, IsLongitude, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+import { ArrayMaxSize, IsArray, IsDate, IsDateString, IsInt, IsLatitude, IsLongitude, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class MediaDto {
 
@@ -33,4 +33,10 @@ export class MediaDto {
     @IsNotEmpty()
     @IsDateString()
     dateTaken: string;
+
+    /*@IsOptional()
+    @IsArray()
+    @ArrayMaxSize(512)
+    @IsNumber({}, { each: true })
+    clipEmbeddings?: Number[]*/
 }

@@ -1,13 +1,16 @@
+import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
 import { createReadStream } from "fs";
+import { firstValueFrom, map, switchMap, tap } from "rxjs";
 import { MediaDto } from "src/dto/media/media.dto";
 import { MediaTagEntity } from "src/entities/mediatag.entity";
 import { MediaCategoryDto, ViewMedia, ViewSection } from "src/models/photo-list-models";
 import { MediaRepository } from "src/repositories/media.repository";
 import { MediaTagRepository } from "src/repositories/mediatag.repository";
 import { TypesenseRepository } from "src/repositories/typsense.repositoru";
+import { EmbeddingsService } from "src/services/embeddings.service";
 import { Repository } from "typeorm";
 
 @Injectable()
@@ -18,16 +21,46 @@ export class MediaService {
         private mediaRepository: MediaRepository,
         @InjectRepository(MediaTagRepository)
         private mediaTagRepository: MediaTagRepository,
-        private typeSenseRepository: TypesenseRepository
+        private typeSenseRepository: TypesenseRepository,
+        private embeddingsService: EmbeddingsService
     ) { }
+
+    async getMediaClipEmbeddings(mediaId: string) {
+        this.embeddingsService.getMediaEmbedding(mediaId).pipe(tap(response => {
+            if(response.data.success) {
+                this.typeSenseRepository.insertDocument({id: mediaId, clipEmbeddings: response.data.data})
+            }
+    })).subscribe()
+    }
 
     async addPhoto(createMediaDto: MediaDto) {
 
-        let mediaData = { ...createMediaDto, mediaType: 'image'};
-        /*return this.typeSenseRepository.insertDocument(mediaData);*/
-
+        let mediaData = { ...createMediaDto, mediaType: 'image' };
+        
+        //return this.typeSenseRepository.insertDocument(mediaData);
         let media = this.mediaRepository.create(mediaData);
-        return await this.mediaRepository.save(media);
+        let savedData = await this.mediaRepository.save(media);
+        this.getMediaClipEmbeddings(savedData.mediaId);
+        return savedData
+    }
+
+    async fetchMediaDocument(documentId: string) {
+        return this.typeSenseRepository.fetchDocument(documentId);
+    }
+
+    async fetchAllDocuments() {
+        return this.typeSenseRepository.fetchAllDocuments();
+    }
+
+    async searchDocuments(vector: number[]) {
+        return this.typeSenseRepository.searchDocuments(vector);
+    }
+
+    async searchMedia(value: string) {
+        let response = await firstValueFrom(this.embeddingsService.getWordEmbedding(value))
+        if (response.data.success) {
+            return this.typeSenseRepository.searchDocuments(response.data.data);
+        }
     }
 
     async getPhotoDataById(id: string) {
