@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import { createReadStream } from "fs";
 import { firstValueFrom, map, switchMap, tap } from "rxjs";
 import { MediaDto } from "src/dto/media/media.dto";
+import { MediaEntity } from "src/entities/media.entity";
 import { MediaTagEntity } from "src/entities/mediatag.entity";
 import { MediaCategoryDto, ViewMedia, ViewSection } from "src/models/photo-list-models";
 import { MediaRepository } from "src/repositories/media.repository";
@@ -25,22 +26,40 @@ export class MediaService {
         private embeddingsService: EmbeddingsService
     ) { }
 
-    async getMediaClipEmbeddings(mediaId: string) {
-        this.embeddingsService.getMediaEmbedding(mediaId).pipe(tap(response => {
-            if(response.data.success) {
-                this.typeSenseRepository.insertDocument({id: mediaId, clipEmbeddings: response.data.data})
+
+    formatDateToYYYYMM(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Adding 1 because months are zero-indexed
+
+        return `${year}-${month}`;
+    }
+
+    formatDateToYYYYMMDD(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Adding 1 because months are zero-indexed
+        const day = date.getDate().toString().padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+
+    async getMediaClipEmbeddings(media: MediaEntity) {
+        this.embeddingsService.getMediaEmbedding(media.mediaId).pipe(tap(response => {
+            if (response.data.success) {
+                let date = new Date(media.dateTaken);
+                this.typeSenseRepository.insertDocument({ id: media.mediaId, clipEmbeddings: response.data.data, segmentId: this.formatDateToYYYYMMDD(date), sectionId: this.formatDateToYYYYMM(date), width: media.width, height: media.height, date: date.valueOf() })
             }
-    })).subscribe()
+        })).subscribe()
     }
 
     async addPhoto(createMediaDto: MediaDto) {
 
         let mediaData = { ...createMediaDto, mediaType: 'image' };
-        
+
         //return this.typeSenseRepository.insertDocument(mediaData);
         let media = this.mediaRepository.create(mediaData);
         let savedData = await this.mediaRepository.save(media);
-        this.getMediaClipEmbeddings(savedData.mediaId);
+        this.getMediaClipEmbeddings(savedData);
         return savedData
     }
 
@@ -84,15 +103,30 @@ export class MediaService {
         return this.mediaRepository.getSectionsForSearchTerm(searchTerm);
     }
 
+    async getSectionsFromDocuments(searchTerm: string) {
+        let response = await firstValueFrom(this.embeddingsService.getWordEmbedding(searchTerm))
+
+        if (response.data.success) {
+            return this.typeSenseRepository.getMediaSectionsFromDocuments(response.data.data);
+        }
+    }
+
+    async getSegmentsFromDocuments(sectionId: string, searchTerm: string, amountFromSection: number) {
+        let response = await firstValueFrom(this.embeddingsService.getWordEmbedding(searchTerm))
+        if (response.data.success) {
+            return this.typeSenseRepository.getSegmentsForSearchTerm(sectionId, response.data.data, amountFromSection);
+        }
+    }
+
     async getSegments(id: string, searchTerm: string | null) {
         if (!searchTerm) {
             searchTerm = null
         }
-        
+
         interface ViewMediaExpanded extends ViewMedia { segmentId: string }
 
-        let expandedSegments: ViewMediaExpanded[] =  await this.mediaRepository.getSegments(id, searchTerm);
-            
+        let expandedSegments: ViewMediaExpanded[] = await this.mediaRepository.getSegments(id, searchTerm);
+
 
         return expandedSegments.reduce((acc, obj) => {
             const { segmentId, mediaId, width, height } = obj;
@@ -113,7 +147,7 @@ export class MediaService {
 
     async postCategories(mediaCategoriesDto: MediaCategoryDto) {
         let count = this.mediaRepository.count({ where: { mediaId: mediaCategoriesDto.mediaId } });
-        
+
         // onlt if media even exists
         if (count) {
             this.mediaTagRepository.updateTags(mediaCategoriesDto);

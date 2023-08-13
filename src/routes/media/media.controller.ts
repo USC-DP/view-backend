@@ -63,15 +63,25 @@ export class MediaController {
         return this.mediaService.setClipEmbeddings(id);
     }*/
 
-    /*@Get("/fetch-all-documents")
+    @Get("/fetch-all-documents")
     async fetchAllDocuments() {
         return this.mediaService.fetchAllDocuments();
-    }*/
+    }
 
-    /*@Post("/search-all-documents")
+    @Post("/search-all-documents")
     async searchAllDocuments(@Body('clipEmbedding') clipEmbedding: number[]) {
         return this.mediaService.searchDocuments(clipEmbedding);
-    }*/
+    }
+
+    @Post("/search-sections/")
+    async getSectionsFromSearch(@Body('search') searchStr: string) {
+        return this.mediaService.getSectionsFromDocuments(searchStr);
+    }
+
+    @Post("/search-segments/")
+    async getSegmentsFromSearch(@Body('sectionId') sectionId, @Body('search') searchStr, @Body('amount') amountFromSection) {
+        return this.mediaService.getSegmentsFromDocuments(sectionId, searchStr, amountFromSection)
+    }
 
     //todo
     @Get("/segments/:id")
