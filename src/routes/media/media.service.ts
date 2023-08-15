@@ -47,14 +47,14 @@ export class MediaService {
         this.embeddingsService.getMediaEmbedding(media.mediaId).pipe(tap(response => {
             if (response.data.success) {
                 let date = new Date(media.dateTaken);
-                this.typeSenseRepository.insertDocument({ id: media.mediaId, clipEmbeddings: response.data.data, segmentId: this.formatDateToYYYYMMDD(date), sectionId: this.formatDateToYYYYMM(date), width: media.width, height: media.height, date: date.valueOf() })
+                this.typeSenseRepository.insertDocument({ id: media.mediaId, clipEmbeddings: response.data.data, segmentId: this.formatDateToYYYYMMDD(date), sectionId: this.formatDateToYYYYMM(date), width: media.width, height: media.height, date: date.valueOf(), ownerId: media.ownerId })
             }
         })).subscribe()
     }
 
-    async addPhoto(createMediaDto: MediaDto) {
+    async addPhoto(userId: string, createMediaDto: MediaDto) {
 
-        let mediaData = { ...createMediaDto, mediaType: 'image' };
+        let mediaData = { ...createMediaDto, ownerId: userId, mediaType: 'image' };
 
         //return this.typeSenseRepository.insertDocument(mediaData);
         let media = this.mediaRepository.create(mediaData);
@@ -63,27 +63,27 @@ export class MediaService {
         return savedData
     }
 
-    async fetchMediaDocument(documentId: string) {
+    /*async fetchMediaDocument(documentId: string) {
         return this.typeSenseRepository.fetchDocument(documentId);
-    }
+    }*/
 
     async fetchAllDocuments() {
         return this.typeSenseRepository.fetchAllDocuments();
     }
 
-    async searchDocuments(vector: number[]) {
+    /*async searchDocuments(vector: number[]) {
         return this.typeSenseRepository.searchDocuments(vector);
-    }
+    }*/
 
-    async searchMedia(value: string) {
+    /*async searchMedia(value: string) {
         let response = await firstValueFrom(this.embeddingsService.getWordEmbedding(value))
         if (response.data.success) {
             return this.typeSenseRepository.searchDocuments(response.data.data);
         }
-    }
+    }*/
 
-    async getPhotoDataById(id: string) {
-        return this.mediaRepository.findOne({ where: { mediaId: id } });
+    async getPhotoDataById(userId: string, id: string) {
+        return this.mediaRepository.findOne({ where: { mediaId: id, ownerId: userId} });
     }
 
     async getPhotoPathsForUser(id: string) {
@@ -99,22 +99,22 @@ export class MediaService {
         return this.mediaRepository.getAllGeodataFromOwnerId(id);
     }
 
-    async getSections(searchTerm) {
+    /*async getSections(userId: string, searchTerm: string) {
         return this.mediaRepository.getSectionsForSearchTerm(searchTerm);
-    }
+    }*/
 
-    async getSectionsFromDocuments(searchTerm: string) {
+    async getSectionsFromDocuments(userId: string, searchTerm: string) {
         let response = await firstValueFrom(this.embeddingsService.getWordEmbedding(searchTerm))
 
         if (response.data.success) {
-            return this.typeSenseRepository.getMediaSectionsFromDocuments(response.data.data);
+            return this.typeSenseRepository.getMediaSectionsFromDocuments(userId, response.data.data);
         }
     }
 
-    async getSegmentsFromDocuments(sectionId: string, searchTerm: string, amountFromSection: number) {
+    async getSegmentsFromDocuments(userId: string, sectionId: string, searchTerm: string, amountFromSection: number) {
         let response = await firstValueFrom(this.embeddingsService.getWordEmbedding(searchTerm))
         if (response.data.success) {
-            return this.typeSenseRepository.getSegmentsForSearchTerm(sectionId, response.data.data, amountFromSection);
+            return this.typeSenseRepository.getSegmentsForSearchTerm(userId, sectionId, response.data.data, amountFromSection);
         }
     }
 

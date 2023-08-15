@@ -14,10 +14,6 @@ export class MediaDto {
     @IsInt()
     height: number;
 
-    @IsNotEmpty()
-    @IsString()
-    ownerId: string;
-
     @IsOptional()
     @IsString()
     description: string;

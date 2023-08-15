@@ -38,7 +38,7 @@ export class TypesenseRepository {
                 { name: 'width', type: 'int32' },
                 { name: 'height', type: 'int32' },
                 { name: 'date', type: 'int64' },
-                //{ name: 'path', type: 'string' },
+                { name: 'ownerId', type: 'string' },
                 //{ name: 'lat', type: 'int32' },
                 //{ name: 'lon', type: 'int32' },
                 //{ name: 'mediaType', type: 'string', facet: true },
@@ -91,7 +91,7 @@ export class TypesenseRepository {
         return await this.client.collections('media').documents().search(searchQuery);
     }
 
-    async searchDocuments(searchVector: number[]) {
+    /*async searchDocuments(searchVector: number[]) {
         const { results } = await this.client.multiSearch.perform({
             searches: [
                 {
@@ -114,10 +114,10 @@ export class TypesenseRepository {
         }
         //console.log(searchQuery);
         //return await this.client.multiSearch.perform(searchQuery, {});
-    }
+    }*/
 
     //YYYY-MM
-    async getMediaSectionsFromDocuments(searchVector: number[]) {
+    async getMediaSectionsFromDocuments(userId: string, searchVector: number[]) {
 
         const { results } = await this.client.multiSearch.perform({
             searches: [
@@ -125,6 +125,7 @@ export class TypesenseRepository {
                     collection: 'media',
                     q: '*',
                     facet_by: 'sectionId',
+                    filter_by: `ownerId:${userId}`,
                     ...(searchVector.length > 0 ? { vector_query: `clipEmbeddings:([${searchVector.join(',')}], k:10)` } : {}),
                     per_page: 100,
                 } as any
@@ -222,14 +223,14 @@ export class TypesenseRepository {
 
     }
 
-    async getSegmentsForSearchTerm(sectionId: string, searchVector: number[], amountFromSection: number) {
+    async getSegmentsForSearchTerm(userId: string, sectionId: string, searchVector: number[], amountFromSection: number) {
         const { results } = await this.client.multiSearch.perform({
             searches: [
                 {
                     collection: 'media',
                     q: '*',
                     sort_by: 'date:desc',
-                    filter_by: `sectionId: ${sectionId}`,
+                    filter_by: `sectionId: ${sectionId} && ownerId:${userId}`,
                     ...(searchVector.length > 0 ? { vector_query: `clipEmbeddings:([${searchVector.join(',')}], k:100)` } : {}),
                     per_page: amountFromSection,
                 } as any
