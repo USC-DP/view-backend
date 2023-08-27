@@ -24,7 +24,27 @@ export class MediaService {
         private mediaTagRepository: MediaTagRepository,
         private typeSenseRepository: TypesenseRepository,
         private embeddingsService: EmbeddingsService
-    ) { }
+    ) {
+
+        this.instantiateTypseSense();
+    }
+
+    async instantiateTypseSense() {
+        try {
+            const data = await this.typeSenseRepository.instantiate()
+            console.log("collection created")
+            //need to sync with database
+            const allMedia = await this.mediaRepository.find();
+            for (const media of allMedia) {
+
+                this.getMediaClipEmbeddingsAndUpsert(media);
+            }
+            console.log("collection synced with database")
+
+        } catch (error) {
+            console.log('do not have to sync database', error);
+        }
+    }
 
 
     formatDateToYYYYMM(date) {
@@ -43,7 +63,7 @@ export class MediaService {
     }
 
 
-    async getMediaClipEmbeddings(media: MediaEntity) {
+    async getMediaClipEmbeddingsAndUpsert(media: MediaEntity) {
         this.embeddingsService.getMediaEmbedding(media.mediaId).pipe(tap(response => {
             if (response.data.success) {
                 let date = new Date(media.dateTaken);
@@ -59,7 +79,7 @@ export class MediaService {
         //return this.typeSenseRepository.insertDocument(mediaData);
         let media = this.mediaRepository.create(mediaData);
         let savedData = await this.mediaRepository.save(media);
-        this.getMediaClipEmbeddings(savedData);
+        this.getMediaClipEmbeddingsAndUpsert(savedData);
         return savedData
     }
 
@@ -83,7 +103,7 @@ export class MediaService {
     }*/
 
     async getPhotoDataById(userId: string, id: string) {
-        return this.mediaRepository.findOne({ where: { mediaId: id, ownerId: userId} });
+        return this.mediaRepository.findOne({ where: { mediaId: id, ownerId: userId } });
     }
 
     async getPhotoPathsForUser(id: string) {

@@ -14,6 +14,9 @@ export class TypesenseRepository {
     private client: Client;
 
     constructor() {
+    }
+
+    async instantiate() {
         //return;
         this.client = new Client({
             nodes: [{
@@ -25,7 +28,7 @@ export class TypesenseRepository {
             connectionTimeoutSeconds: 2
         })
 
-        this.setup();
+        return this.setup();
     }
 
     private async setup() {
@@ -53,14 +56,10 @@ export class TypesenseRepository {
             .catch(() => null);
 
         if (!collection) {
-            this.client.collections().create(typeSenseMediaSchema)
-                .then(function (data) {
-                    console.log("collection created")
-                }).catch(function (error) {
-                    console.error('Error creating collection:', error);
-                });
+            return this.client.collections().create(typeSenseMediaSchema);
         } else {
-            console.log("collection already exists")
+            console.log("collection already exists");
+            return Promise.reject(false);
         }
     }
 
