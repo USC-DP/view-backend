@@ -1,10 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany, BeforeUpdate, BeforeInsert } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany, BeforeUpdate, BeforeInsert, PrimaryColumn } from 'typeorm';
 import { Account } from './account.entity';
 import { MediaTagEntity } from './mediatag.entity';
 
 @Entity({name: 'Media'})
 export class MediaEntity {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryColumn("uuid")
   mediaId: string;
 
   @Column()

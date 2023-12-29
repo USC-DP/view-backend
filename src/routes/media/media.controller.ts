@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post, Request, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Request, Res, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { MediaService } from "./media.service";
 import { createReadStream } from "fs";
 import { MediaCategoryDto } from "src/models/photo-list-models";
 import { MediaDto } from "src/dto/media/media.dto";
 import { SkipAuth } from "../auth/auth.decorators";
 import { AuthGuard } from "../auth/auth.guard";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 
 @Controller('/media')
@@ -12,9 +13,15 @@ export class MediaController {
 
     constructor(private readonly mediaService: MediaService) { }
 
-    @Post("/add")
+    /*@Post("/add")
     async addPhoto(@Request() req, @Body() createMediaDto: MediaDto) {
         return this.mediaService.addPhoto(req.user.userId, createMediaDto);
+    }*/
+
+    @Post("/upload-media")
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadMedia(@Request() req, @UploadedFile() file: Express.Multer.File, @Body() createMediaDto: MediaDto) {
+        return this.mediaService.uploadMedia(req.user.userId, file, createMediaDto);
     }
 
     @Get("/data/:id")
@@ -95,7 +102,9 @@ export class MediaController {
         return this.mediaService.getSegments(id, searchTerm);
     }*/
 
-    //TO-DO AUTH HERE
+
+
+    
     @Post("/set-categories/")
     async postCategories(@Body() mediaCategoriesDto: MediaCategoryDto) {
         return this.mediaService.postCategories(mediaCategoriesDto);

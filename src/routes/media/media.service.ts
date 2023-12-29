@@ -13,6 +13,9 @@ import { MediaTagRepository } from "src/repositories/mediatag.repository";
 import { TypesenseRepository } from "src/repositories/typsense.repositoru";
 import { EmbeddingsService } from "src/services/embeddings.service";
 import { Repository } from "typeorm";
+import { v4 as uuidv4 } from 'uuid';
+import * as fs from 'fs';
+
 
 @Injectable()
 export class MediaService {
@@ -74,13 +77,35 @@ export class MediaService {
 
     async addPhoto(userId: string, createMediaDto: MediaDto) {
 
-        let mediaData = { ...createMediaDto, ownerId: userId, mediaType: 'image' };
+        let mediaData = { ...createMediaDto, ownerId: userId, mediaType: 'image', width: parseInt(createMediaDto.width), height: parseInt(createMediaDto.height) };
 
         //return this.typeSenseRepository.insertDocument(mediaData);
         let media = this.mediaRepository.create(mediaData);
+
+
+
         let savedData = await this.mediaRepository.save(media);
         this.getMediaClipEmbeddingsAndUpsert(savedData);
         return savedData
+    }
+
+    async uploadMedia(userId, file: Express.Multer.File, createMediaDto: MediaDto) {
+        const parts = file.originalname.split('.');
+        const mediaUUID = uuidv4();
+        const filePath = "C:\\Users\\Dennis\\Desktop\\ViewApp\\view-backend\\photos\\" + mediaUUID + "." + parts[parts.length - 1].toLocaleLowerCase();
+
+        try {
+            fs.writeFileSync(filePath, file.buffer);
+            let mediaData = { ...createMediaDto, path: filePath, ownerId: userId, mediaType: 'image', width: parseInt(createMediaDto.width), height: parseInt(createMediaDto.height), mediaId: mediaUUID };
+            let media = this.mediaRepository.create(mediaData);
+            let savedData = await this.mediaRepository.save(media);
+            this.getMediaClipEmbeddingsAndUpsert(savedData);
+            return savedData;
+
+        } catch (error) {
+            console.log(error);
+        }
+
     }
 
     async fetchAllDocuments() {
