@@ -90,31 +90,6 @@ export class TypesenseRepository {
         return await this.client.collections('media').documents().search(searchQuery);
     }
 
-    /*async searchDocuments(searchVector: number[]) {
-        const { results } = await this.client.multiSearch.perform({
-            searches: [
-                {
-                    collection: 'media',
-                    q: '*',
-                    vector_query: `clipEmbeddings:([${searchVector.join(',')}], k:10)`,
-                    per_page: 100,
-                } as any
-            ]
-        });
-
-        return results;
-
-        return {
-            mediaId: (results[0]?.hits || []).map(item => {
-                //@ts-ignore
-                return item.document.id;
-
-            })
-        }
-        //console.log(searchQuery);
-        //return await this.client.multiSearch.perform(searchQuery, {});
-    }*/
-
     //YYYY-MM
     async getMediaSectionsFromDocuments(userId: string, searchVector: number[]) {
 

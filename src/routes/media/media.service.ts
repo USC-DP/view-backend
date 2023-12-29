@@ -83,24 +83,9 @@ export class MediaService {
         return savedData
     }
 
-    /*async fetchMediaDocument(documentId: string) {
-        return this.typeSenseRepository.fetchDocument(documentId);
-    }*/
-
     async fetchAllDocuments() {
         return this.typeSenseRepository.fetchAllDocuments();
     }
-
-    /*async searchDocuments(vector: number[]) {
-        return this.typeSenseRepository.searchDocuments(vector);
-    }*/
-
-    /*async searchMedia(value: string) {
-        let response = await firstValueFrom(this.embeddingsService.getWordEmbedding(value))
-        if (response.data.success) {
-            return this.typeSenseRepository.searchDocuments(response.data.data);
-        }
-    }*/
 
     async getPhotoDataById(userId: string, id: string) {
         return this.mediaRepository.findOne({ where: { mediaId: id, ownerId: userId } });
@@ -118,10 +103,6 @@ export class MediaService {
     async getAllPhotoGeoData(id: string) {
         return this.mediaRepository.getAllGeodataFromOwnerId(id);
     }
-
-    /*async getSections(userId: string, searchTerm: string) {
-        return this.mediaRepository.getSectionsForSearchTerm(searchTerm);
-    }*/
 
     async getSectionsFromDocuments(userId: string, searchTerm: string) {
         let response = await firstValueFrom(this.embeddingsService.getWordEmbedding(searchTerm))
@@ -168,7 +149,7 @@ export class MediaService {
     async postCategories(mediaCategoriesDto: MediaCategoryDto) {
         let count = this.mediaRepository.count({ where: { mediaId: mediaCategoriesDto.mediaId } });
 
-        // onlt if media even exists
+        // only if media even exists
         if (count) {
             this.mediaTagRepository.updateTags(mediaCategoriesDto);
         }
