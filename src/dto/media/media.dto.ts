@@ -2,16 +2,6 @@ import { ArrayMaxSize, IsArray, IsDate, IsDateString, IsInt, IsLatitude, IsLongi
 
 export class MediaDto {
 
-    /*@IsNotEmpty()
-    @IsString()
-    path: string;*/
-
-    @IsNotEmpty()
-    width: string;
-
-    @IsNotEmpty()
-    height: string;
-
     @IsOptional()
     @IsString()
     description: string;

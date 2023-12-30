@@ -15,6 +15,7 @@ import { EmbeddingsService } from "src/services/embeddings.service";
 import { Repository } from "typeorm";
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
+import { imageSize } from 'image-size';
 
 
 @Injectable()
@@ -77,16 +78,16 @@ export class MediaService {
 
     async addPhoto(userId: string, createMediaDto: MediaDto) {
 
-        let mediaData = { ...createMediaDto, ownerId: userId, mediaType: 'image', width: parseInt(createMediaDto.width), height: parseInt(createMediaDto.height) };
+        //let mediaData = { ...createMediaDto, ownerId: userId, mediaType: 'image', width: parseInt(createMediaDto.width), height: parseInt(createMediaDto.height) };
 
         //return this.typeSenseRepository.insertDocument(mediaData);
-        let media = this.mediaRepository.create(mediaData);
+        //let media = this.mediaRepository.create(mediaData);
 
 
 
-        let savedData = await this.mediaRepository.save(media);
-        this.getMediaClipEmbeddingsAndUpsert(savedData);
-        return savedData
+        //let savedData = await this.mediaRepository.save(media);
+        //this.getMediaClipEmbeddingsAndUpsert(savedData);
+        //return savedData
     }
 
     async uploadMedia(userId, file: Express.Multer.File, createMediaDto: MediaDto) {
@@ -95,8 +96,15 @@ export class MediaService {
         const filePath = "C:\\Users\\Dennis\\Desktop\\ViewApp\\view-backend\\photos\\" + mediaUUID + "." + parts[parts.length - 1].toLocaleLowerCase();
 
         try {
+            if (!file.mimetype.startsWith("image/")) {
+                throw new Error("File is not an image");
+            }
+
+
             fs.writeFileSync(filePath, file.buffer);
-            let mediaData = { ...createMediaDto, path: filePath, ownerId: userId, mediaType: 'image', width: parseInt(createMediaDto.width), height: parseInt(createMediaDto.height), mediaId: mediaUUID };
+
+            imageSize(file.buffer)
+            let mediaData = { ...createMediaDto, path: filePath, ownerId: userId, mediaType: 'image', mediaId: mediaUUID, width: imageSize(filePath).width, height: imageSize(filePath).height};
             let media = this.mediaRepository.create(mediaData);
             let savedData = await this.mediaRepository.save(media);
             this.getMediaClipEmbeddingsAndUpsert(savedData);
